@@ -17,7 +17,7 @@ export default function Home() {
 
   return (
     <View className={styles.container}>
-      <Stack.Screen options={{ title: 'Nudge' }} />
+      <Stack.Screen options={{ title: 'Home' }} />
       <Container>
         <Text>Is logged in: {String(isLoggedIn)}</Text>
         <ScreenContent path="app/index.tsx" title="Home" />

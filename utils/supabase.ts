@@ -5,7 +5,12 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Must set supabase environment variables!');
+  throw new Error(
+    'Supabase environment variables must be set! supabaseUrl: ' +
+      supabaseUrl +
+      ', supabaseAnonKey: ' +
+      supabaseAnonKey
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

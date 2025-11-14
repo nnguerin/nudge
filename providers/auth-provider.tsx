@@ -1,7 +1,7 @@
+import Splash from '@/app/splash';
 import { useStore } from '@/store/store';
 import { supabase } from '@/utils/supabase';
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
 
 interface SupabaseAuthProviderProps {
   children?: React.ReactNode;
@@ -70,11 +70,7 @@ export const SupabaseAuthProvider = ({
   }, [session, setProfile]);
 
   if (isLoading) {
-    return (
-      <View>
-        <Text>Logging in!</Text>
-      </View>
-    );
+    return <Splash />;
   }
 
   return <>{children}</>;
