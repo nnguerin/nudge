@@ -24,99 +24,97 @@ const SignUp = () => {
   };
 
   return (
-    <SafeAreaView className={styles.container}>
-      <KeyboardAwareScrollView
-        contentContainerClassName="flex-grow"
-        keyboardShouldPersistTaps="handled"
-        enableOnAndroid={true}
-        extraScrollHeight={20}>
-        <View className={styles.logoContainer}>
-          <Text className="m-auto text-slate-600">LOGO IMAGE</Text>
+    <KeyboardAwareScrollView
+      contentContainerClassName="flex-grow"
+      keyboardShouldPersistTaps="handled"
+      enableOnAndroid={true}
+      extraScrollHeight={20}>
+      <View className={styles.logoContainer}>
+        <Text className="m-auto text-slate-600">LOGO IMAGE</Text>
+      </View>
+      <View className={styles.headerContainer}>
+        <Text className={styles.titleText}>Welcome to Nudge</Text>
+        <Text className={styles.taglineText}>Sign up to stay connected</Text>
+      </View>
+      <View className={styles.bodyContainer}>
+        <Text className={styles.inputLabel}>Email</Text>
+        <View className={styles.inputContainer}>
+          <MaterialIcons name="email" size={24} color={colors.slate[600]} />
+          <TextInput
+            onChangeText={setEmail}
+            value={email}
+            placeholder="email@address.com"
+            autoCapitalize="none"
+            className="flex-1"
+          />
         </View>
-        <View className={styles.headerContainer}>
-          <Text className={styles.titleText}>Welcome to Nudge</Text>
-          <Text className={styles.taglineText}>Sign up to stay connected</Text>
+        <View className="h-2" />
+        <Text className={styles.inputLabel}>Password</Text>
+        <View className={styles.inputContainer}>
+          <MaterialIcons name="lock" size={24} color={colors.slate[600]} />
+          <TextInput
+            onChangeText={setPassword}
+            value={password}
+            placeholder="Password"
+            autoCapitalize="none"
+            secureTextEntry={hidePassword}
+            className="flex-1"
+          />
+          <MaterialCommunityIcons
+            name={hidePassword ? 'eye' : 'eye-off'}
+            size={24}
+            color={colors.slate[600]}
+            className="ml-auto"
+            onPress={toggleHidePassword}
+          />
         </View>
-        <View className={styles.bodyContainer}>
-          <Text className={styles.inputLabel}>Email</Text>
-          <View className={styles.inputContainer}>
-            <MaterialIcons name="email" size={24} color={colors.slate[600]} />
-            <TextInput
-              onChangeText={setEmail}
-              value={email}
-              placeholder="email@address.com"
-              autoCapitalize="none"
-              className="flex-1"
-            />
+
+        <View className="py-4" />
+
+        <Pressable
+          disabled={authIsLoading}
+          onPress={handleSignUp}
+          className={cn(styles.authButton, 'bg-blue-300')}>
+          <Text className="p-4 font-bold text-white">
+            {authIsLoading ? 'Signing Up...' : 'Sign Up'}
+          </Text>
+          <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
+        </Pressable>
+
+        <View className="my-4 flex-row items-center">
+          <View className="m-auto flex-row items-center gap-2">
+            <Text className="mx-auto text-sm text-slate-500">Already have an account?</Text>
+            <Pressable>
+              <Link href={'/signin'}>
+                <Text className="font-bold text-blue-500">Sign In</Text>
+              </Link>
+            </Pressable>
           </View>
-          <View className="h-2" />
-          <Text className={styles.inputLabel}>Password</Text>
-          <View className={styles.inputContainer}>
-            <MaterialIcons name="lock" size={24} color={colors.slate[600]} />
-            <TextInput
-              onChangeText={setPassword}
-              value={password}
-              placeholder="Password"
-              autoCapitalize="none"
-              secureTextEntry={hidePassword}
-              className="flex-1"
-            />
-            <MaterialCommunityIcons
-              name={hidePassword ? 'eye' : 'eye-off'}
-              size={24}
-              color={colors.slate[600]}
-              className="ml-auto"
-              onPress={toggleHidePassword}
-            />
-          </View>
-
-          <View className="py-4" />
-
-          <Pressable
-            disabled={authIsLoading}
-            onPress={handleSignUp}
-            className={cn(styles.authButton, 'bg-blue-300')}>
-            <Text className="p-4 font-bold text-white">
-              {authIsLoading ? 'Signing Up...' : 'Sign Up'}
-            </Text>
-            <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
-          </Pressable>
-
-          <View className="my-4 flex-row items-center">
-            <View className="m-auto flex-row items-center gap-2">
-              <Text className="mx-auto text-sm text-slate-500">Already have an account?</Text>
-              <Pressable>
-                <Link href={'/signin'}>
-                  <Text className="font-bold text-blue-500">Sign In</Text>
-                </Link>
-              </Pressable>
-            </View>
-          </View>
-
-          <View className="my-4 flex-row items-center">
-            <View className="h-[1px] flex-1 bg-slate-300" />
-            <Text className="mx-4 text-sm text-slate-500">or continue with</Text>
-            <View className="h-[1px] flex-1 bg-slate-300" />
-          </View>
-
-          <Pressable
-            disabled={true}
-            className={cn(styles.authButton, 'border-[1px] border-slate-400 bg-white')}>
-            <MaterialCommunityIcons name="google" size={24} color={colors.blue[300]} />
-            <Text className="p-4 font-bold text-slate-950">Continue with Google</Text>
-            <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
-          </Pressable>
-
-          <Pressable
-            disabled={true}
-            className={cn(styles.authButton, 'border-[1px] border-slate-400 bg-white')}>
-            <MaterialCommunityIcons name="apple" size={24} color={colors.blue[300]} />
-            <Text className="p-4 font-bold text-slate-950">Continue with Apple</Text>
-            <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
-          </Pressable>
         </View>
-      </KeyboardAwareScrollView>
-    </SafeAreaView>
+
+        <View className="my-4 flex-row items-center">
+          <View className="h-[1px] flex-1 bg-slate-300" />
+          <Text className="mx-4 text-sm text-slate-500">or continue with</Text>
+          <View className="h-[1px] flex-1 bg-slate-300" />
+        </View>
+
+        <Pressable
+          disabled={true}
+          className={cn(styles.authButton, 'border-[1px] border-slate-400 bg-white')}>
+          <MaterialCommunityIcons name="google" size={24} color={colors.blue[300]} />
+          <Text className="p-4 font-bold text-slate-950">Continue with Google</Text>
+          <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
+        </Pressable>
+
+        <Pressable
+          disabled={true}
+          className={cn(styles.authButton, 'border-[1px] border-slate-400 bg-white')}>
+          <MaterialCommunityIcons name="apple" size={24} color={colors.blue[300]} />
+          <Text className="p-4 font-bold text-slate-950">Continue with Apple</Text>
+          <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollView>
   );
 };
 
