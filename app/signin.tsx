@@ -8,6 +8,7 @@ import { colors } from '@/utils/colors';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { cn } from '@/utils/cn';
 import { Stack } from 'expo-router';
+import Button from '@/components/ui/Button';
 
 const SignIn = () => {
   const { signIn, authIsLoading } = useStore();
@@ -67,30 +68,27 @@ const SignIn = () => {
             />
           </View>
 
-          <View className="py-4" />
-
-          <Pressable
-            disabled={authIsLoading}
-            onPress={handleSignIn}
-            className={cn(styles.authButton, 'bg-blue-300')}>
-            <Text className="p-4 font-bold text-white">
-              {authIsLoading ? 'Signing In...' : 'Sign In'}
-            </Text>
-            <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
-          </Pressable>
+          <View className="pt-4">
+            <Button
+              title={authIsLoading ? 'Signing In...' : 'Sign In'}
+              onPress={handleSignIn}
+              disabled={authIsLoading}
+              icon={<MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />}
+              iconPosition="right"
+            />
+          </View>
 
           {__DEV__ && (
-            <Pressable
-              disabled={authIsLoading}
-              onPress={() => {
-                signIn('nnguerin@gmail.com', 'Panda581');
-              }}
-              className={cn(styles.authButton, 'bg-blue-300')}>
-              <Text className="p-4 font-bold text-white">
-                {authIsLoading ? 'Signing In...' : 'Sign As Nima'}
-              </Text>
-              <MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />
-            </Pressable>
+            <View className="pt-4">
+              <Button
+                title={authIsLoading ? 'Signing In...' : 'Sign in as Nima'}
+                onPress={() => {
+                  signIn('nnguerin@gmail.com', 'Panda581');
+                }}
+                disabled={authIsLoading}
+                variant="ghost"
+              />
+            </View>
           )}
         </View>
       </KeyboardAwareScrollView>

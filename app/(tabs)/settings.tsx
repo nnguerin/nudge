@@ -72,7 +72,13 @@ export const Settings = () => {
         />
       </ButtonMenu>
       <View className="p-8">
-        <Button onPress={signOut} title="Sign out" />
+        <Button
+          onPress={signOut}
+          title="Sign out"
+          variant="ghost"
+          textStyle={{ color: colors.orange[500] }}
+          icon={<MaterialIcons name="logout" size={24} color={colors.orange[500]} />}
+        />
       </View>
     </View>
   );

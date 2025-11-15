@@ -12,13 +12,14 @@ import {
 interface ButtonProps {
   title: string;
   onPress?: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -31,11 +32,20 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   icon,
+  iconPosition = 'left',
 }) => {
   const variantStyles = {
     primary: styles.primaryButton,
     secondary: styles.secondaryButton,
-    danger: styles.dangerButton,
+    ghost: styles.ghostButton,
+    destructive: styles.destructiveButton,
+  };
+
+  const variantTextStyles = {
+    primary: styles.primaryText,
+    secondary: styles.secondaryText,
+    ghost: styles.ghostText,
+    destructive: styles.destructiveText,
   };
 
   const sizeStyles = {
@@ -52,6 +62,16 @@ const Button: React.FC<ButtonProps> = ({
 
   const isDisabledOrLoading = disabled || loading;
 
+  const getSpinnerColor = () => {
+    if (variant === 'secondary' || variant === 'ghost') {
+      return '#007AFF';
+    }
+    if (variant === 'destructive') {
+      return '#FF3B30';
+    }
+    return '#fff';
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -66,19 +86,20 @@ const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.7}>
       <View style={styles.buttonContent}>
         {loading ? (
-          <ActivityIndicator color="#fff" size="small" />
+          <ActivityIndicator color={getSpinnerColor()} size="small" />
         ) : (
           <>
-            {icon && <View style={styles.icon}>{icon}</View>}
+            {icon && iconPosition === 'left' && <View style={styles.iconLeft}>{icon}</View>}
             <Text
               style={[
                 styles.buttonText,
-                variantStyles[variant] === styles.secondaryButton && styles.secondaryText,
+                variantTextStyles[variant],
                 sizeTextStyles[size],
                 textStyle,
               ]}>
               {title}
             </Text>
+            {icon && iconPosition === 'right' && <View style={styles.iconRight}>{icon}</View>}
           </>
         )}
       </View>
@@ -99,23 +120,38 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: '600',
+  },
+
+  // Variant text styles
+  primaryText: {
     color: '#fff',
   },
   secondaryText: {
-    color: '#007AFF',
+    color: '#2b7fff',
+  },
+  ghostText: {
+    color: '#2b7fff',
+  },
+  destructiveText: {
+    color: '#FF3B30',
   },
 
   // Variants
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2b7fff',
   },
   secondaryButton: {
     backgroundColor: '#f0f0f0',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#2b7fff',
   },
-  dangerButton: {
-    backgroundColor: '#FF3B30',
+  ghostButton: {
+    backgroundColor: 'transparent',
+  },
+  destructiveButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
   },
 
   // Sizes
@@ -148,9 +184,12 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 
-  // Icon
-  icon: {
+  // Icon positioning
+  iconLeft: {
     marginRight: 8,
+  },
+  iconRight: {
+    marginLeft: 8,
   },
 });
 
