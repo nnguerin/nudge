@@ -1,6 +1,5 @@
 import { Stack, Link } from 'expo-router';
 
-import { Button } from '@/components/Button';
 import { Container } from '@/components/Container';
 import { ScreenContent } from '@/components/ScreenContent';
 import { useStore } from '@/store/store';
@@ -22,10 +21,8 @@ export default function Home() {
         <Text>Is logged in: {String(isLoggedIn)}</Text>
         <ScreenContent path="app/index.tsx" title="Home" />
         <Link href={{ pathname: '/details', params: { name: 'Dan' } }} asChild>
-          <Button title="Show Details" />
+          {/* <Button title="Show Details" /> */}
         </Link>
-        <Button title="Sign In" onPress={handleSignIn} />
-        <Button title="Sign Out" onPress={signOut} />
       </Container>
     </View>
   );
