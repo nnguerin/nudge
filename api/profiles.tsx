@@ -1,4 +1,3 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Profile, UpdateProfileDto } from './types';
 import { supabase } from '@/utils/supabase';
 
@@ -25,30 +24,4 @@ export const profileApi = {
     if (error) throw error;
     return data;
   },
-};
-
-// Query keys
-export const profileKeys = {
-  all: ['profiles'] as const,
-  detail: (userId: string) => [...profileKeys.all, userId] as const,
-};
-
-// Hooks
-export const useProfile = (userId: string) => {
-  return useQuery({
-    queryKey: profileKeys.detail(userId),
-    queryFn: () => profileApi.getProfile(userId),
-    enabled: !!userId,
-  });
-};
-
-export const useUpdateProfile = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: profileApi.updateProfile,
-    onSuccess: (data) => {
-      queryClient.setQueryData(profileKeys.detail(data.id), data);
-    },
-  });
 };

@@ -1,4 +1,4 @@
-import { UserProfile } from '@/types';
+import { Profile } from '@/api/types';
 import { supabase } from '@/utils/supabase';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
@@ -6,11 +6,11 @@ import { create } from 'zustand';
 export interface AppState {
   // authentication
   session: Session | null;
-  profile: UserProfile;
+  profile: Profile | null;
   authIsLoading: boolean;
   setAuthIsLoading: (loading: boolean) => void;
   setSession: (session: Session | null) => void;
-  setProfile: (profile: UserProfile) => void;
+  setProfile: (profile: Profile) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,11 +31,14 @@ export const useStore = create<AppState>((set) => ({
   setProfile: (profile) => set({ profile }),
   setAuthIsLoading: (loading) => set({ authIsLoading: loading }),
   signIn: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+    set({authIsLoading: true})
+
+    supabase.auth.signInWithPassword({email, password}).then(() => {
+      set({authIsLoading: false})
+    }).catch( (error) => {
+      throw error
+    })
+  
   },
   signUp: async (email, password) => {
     const { error } = await supabase.auth.signUp({

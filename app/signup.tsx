@@ -9,6 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { cn } from '@/utils/cn';
 import { Link, router, Stack } from 'expo-router';
 import Button from '@/components/ui/Button';
+import { InteractiveButton } from '@/components/ui/InteractiveButton';
 
 const SignUp = () => {
   const { signUp, authIsLoading } = useStore();
@@ -72,17 +73,11 @@ const SignUp = () => {
         </View>
 
         <View className="pt-4">
-          <Button
-            title={authIsLoading ? 'Signing Up...' : 'Sign Up'}
-            icon={
-              <MaterialCommunityIcons
-                name="arrow-right"
-                size={24}
-                color={colors.white}
-                onPress={handleSignUp}
-                disabled={authIsLoading}
-              />
-            }
+          <InteractiveButton
+            title="Sign Up"
+            loading={authIsLoading}
+            onPress={handleSignUp}
+            icon={<MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />}
             iconPosition="right"
           />
         </View>
@@ -90,7 +85,12 @@ const SignUp = () => {
         <View className="my-2 flex-row items-center">
           <View className="m-auto flex-row items-center">
             <Text>Already have an account?</Text>
-            <Button title="Sign in" variant="ghost" onPress={() => router.navigate('/signin')} />
+            <InteractiveButton
+              title="Sign in"
+              variant="ghost"
+              onPress={() => router.navigate('/signin')}
+              style={{ paddingHorizontal: 8 }}
+            />
           </View>
         </View>
 
@@ -101,12 +101,12 @@ const SignUp = () => {
         </View>
 
         <View className="flex flex-col gap-4">
-          <Button
+          <InteractiveButton
             title="Continue with Google"
             icon={<MaterialCommunityIcons name="google" size={24} color={colors.black} />}
             variant="secondary"
           />
-          <Button
+          <InteractiveButton
             title="Continue with Apple"
             icon={<MaterialCommunityIcons name="apple" size={24} color={colors.black} />}
             variant="secondary"

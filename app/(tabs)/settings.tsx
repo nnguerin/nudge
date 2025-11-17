@@ -1,5 +1,6 @@
 import Button from '@/components/ui/Button';
 import { ButtonMenu, MenuButton } from '@/components/ui/ButtonMenu';
+import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useStore } from '@/store/store';
 import { colors } from '@/utils/colors';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -72,7 +73,7 @@ export const Settings = () => {
         />
       </ButtonMenu>
       <View className="p-8">
-        <Button
+        <InteractiveButton
           onPress={signOut}
           title="Sign out"
           variant="ghost"

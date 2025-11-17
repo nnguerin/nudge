@@ -1,9 +1,9 @@
-import { Database, Tables } from '@/database.types';
+import { Database, Json, Tables } from '@/database.types';
 
 // Re-export Supabase types for convenience
 export type Profile = Tables<'profiles'>;
 export type Contact = Tables<'contacts'>;
-export type NudgeRecipient = Tables<'nudge_recipients'>;
+export type NudgeTarget = Tables<'nudge_targets'>;
 export type Nudge = Tables<'nudges'>;
 export type NudgeUpvote = Tables<'nudge_upvotes'>;
 export type NudgeSend = Tables<'nudge_sends'>;
@@ -11,21 +11,17 @@ export type NudgeSend = Tables<'nudge_sends'>;
 // Insert types (for creating new records)
 export type InsertProfile = Database['public']['Tables']['profiles']['Insert'];
 export type InsertContact = Database['public']['Tables']['contacts']['Insert'];
-export type InsertNudgeRecipient = Database['public']['Tables']['nudge_recipients']['Insert'];
+export type InsertNudgeTarget = Database['public']['Tables']['nudge_targets']['Insert'];
 export type InsertNudge = Database['public']['Tables']['nudges']['Insert'];
 
 // Update types (for updating records)
 export type UpdateProfile = Database['public']['Tables']['profiles']['Update'];
 export type UpdateContact = Database['public']['Tables']['contacts']['Update'];
-export type UpdateNudgeRecipient = Database['public']['Tables']['nudge_recipients']['Update'];
+export type UpdateNudgeTarget = Database['public']['Tables']['nudge_targets']['Update'];
 export type UpdateNudge = Database['public']['Tables']['nudges']['Update'];
 
 // Custom types for API responses with joins
-export interface ContactWithProfile extends Contact {
-  linked_profile?: Pick<Profile, 'first_name' | 'last_name'> | null;
-}
-
-export interface NudgeRecipientWithContacts extends NudgeRecipient {
+export interface NudgeTargetWithContacts extends NudgeTarget {
   contacts: Contact[];
   is_group: boolean;
 }
@@ -33,7 +29,6 @@ export interface NudgeRecipientWithContacts extends NudgeRecipient {
 export interface NudgeWithDetails extends Nudge {
   user_has_upvoted?: boolean;
   creator_profile?: Pick<Profile, 'first_name' | 'last_name'> | null;
-  recipient?: Pick<NudgeRecipient, 'id' | 'name'> | null;
 }
 
 // DTO types (what your API accepts)
@@ -51,17 +46,18 @@ export interface UpdateContactDto {
   linked_user_id?: string;
 }
 
-export interface CreateNudgeRecipientDto {
+export interface CreateNudgeTargetDto {
   name: string;
+  recurrence_pattern: Json | null;
   contact_ids: string[];
 }
 
-export interface UpdateNudgeRecipientDto {
+export interface UpdateNudgeTargetDto {
   name?: string;
+  recurrence_pattern?: Json | null;
 }
 
 export interface CreateNudgeDto {
-  nudge_recipient_id: string;
   text: string;
 }
 

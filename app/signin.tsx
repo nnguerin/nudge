@@ -9,6 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { cn } from '@/utils/cn';
 import { Stack } from 'expo-router';
 import Button from '@/components/ui/Button';
+import { InteractiveButton } from '@/components/ui/InteractiveButton';
 
 const SignIn = () => {
   const { signIn, authIsLoading } = useStore();
@@ -69,10 +70,10 @@ const SignIn = () => {
           </View>
 
           <View className="pt-4">
-            <Button
-              title={authIsLoading ? 'Signing In...' : 'Sign In'}
+            <InteractiveButton
+              title="Sign In"
               onPress={handleSignIn}
-              disabled={authIsLoading}
+              loading={authIsLoading}
               icon={<MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />}
               iconPosition="right"
             />
@@ -80,13 +81,14 @@ const SignIn = () => {
 
           {__DEV__ && (
             <View className="pt-4">
-              <Button
-                title={authIsLoading ? 'Signing In...' : 'Sign in as Nima'}
+              <InteractiveButton
+                title="Sign In as Nima"
+                loading={authIsLoading}
                 onPress={() => {
                   signIn('nnguerin@gmail.com', 'Panda581');
                 }}
-                disabled={authIsLoading}
-                variant="ghost"
+                icon={<MaterialCommunityIcons name="arrow-right" size={24} color={colors.white} />}
+                iconPosition="right"
               />
             </View>
           )}

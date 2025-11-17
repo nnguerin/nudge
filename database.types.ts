@@ -47,66 +47,6 @@ export type Database = {
         }
         Relationships: []
       }
-      nudge_recipient_contacts: {
-        Row: {
-          contact_id: string
-          created_at: string | null
-          id: string
-          nudge_recipient_id: string
-        }
-        Insert: {
-          contact_id: string
-          created_at?: string | null
-          id?: string
-          nudge_recipient_id: string
-        }
-        Update: {
-          contact_id?: string
-          created_at?: string | null
-          id?: string
-          nudge_recipient_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nudge_recipient_contacts_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nudge_recipient_contacts_nudge_recipient_id_fkey"
-            columns: ["nudge_recipient_id"]
-            isOneToOne: false
-            referencedRelation: "nudge_recipients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nudge_recipients: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-          owner_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          owner_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          owner_id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       nudge_sends: {
         Row: {
           completed_at: string | null
@@ -145,6 +85,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nudge_target_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          id: string
+          nudge_target_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          nudge_target_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          nudge_target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nudge_recipient_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nudge_recipient_contacts_nudge_recipient_id_fkey"
+            columns: ["nudge_target_id"]
+            isOneToOne: false
+            referencedRelation: "nudge_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nudge_targets: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          owner_id: string
+          recurrence_pattern: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          recurrence_pattern?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          recurrence_pattern?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       nudge_upvotes: {
         Row: {
@@ -187,7 +190,6 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: number
-          nudge_recipient_id: string | null
           text: string | null
           updated_at: string | null
           upvotes_count: number | null
@@ -196,7 +198,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: number
-          nudge_recipient_id?: string | null
           text?: string | null
           updated_at?: string | null
           upvotes_count?: number | null
@@ -205,20 +206,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: number
-          nudge_recipient_id?: string | null
           text?: string | null
           updated_at?: string | null
           upvotes_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nudges_nudge_recipient_id_fkey"
-            columns: ["nudge_recipient_id"]
-            isOneToOne: false
-            referencedRelation: "nudge_recipients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
