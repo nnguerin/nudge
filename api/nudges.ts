@@ -1,16 +1,18 @@
 import { Nudge, NudgeWithDetails, CreateNudgeDto, UpdateNudgeDto } from './types';
 import { supabase } from '@/utils/supabase';
+import { AuthenticationError, unwrapResult, throwIfError } from './errors';
+import { transformNudgeProfile, transformNudgeProfiles } from './transforms';
 
 // API functions
 export const nudgesApi = {
   getNudges: async (userId?: string): Promise<NudgeWithDetails[]> => {
-    console.log('querying for nudges!');
     const { data, error } = await supabase
       .from('nudges')
       .select(`*, creator_profile:profiles!nudges_created_by_fkey(first_name, last_name)`)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    const nudges = unwrapResult(data, error);
+    const transformed = transformNudgeProfiles(nudges);
 
     // If userId provided, check which nudges they've upvoted
     if (userId) {
@@ -19,25 +21,18 @@ export const nudgesApi = {
         .select('nudge_id')
         .eq('user_id', userId);
 
-      if (upvotesError) throw upvotesError;
+      const upvoteData = unwrapResult(upvotes, upvotesError);
+      const upvotedNudgeIds = new Set(upvoteData.map((u) => u.nudge_id));
 
-      const upvotedNudgeIds = new Set(upvotes.map((u) => u.nudge_id));
-
-      return data.map((nudge) => ({
+      return transformed.map((nudge) => ({
         ...nudge,
-        // supabase should have inferred that this is a many-to-one relationship
-        // this is a workaround
-        creator_profile: nudge.creator_profile[0],
         user_has_upvoted: upvotedNudgeIds.has(nudge.id),
       }));
     }
 
-    return data.map((nudge) => ({
+    return transformed.map((nudge) => ({
       ...nudge,
       user_has_upvoted: false,
-      // supabase should have inferred that this is a many-to-one relationship
-      // this is a workaround
-      creator_profile: nudge.creator_profile[0],
     }));
   },
 
@@ -48,7 +43,8 @@ export const nudgesApi = {
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    const nudge = unwrapResult(data, error);
+    const transformed = transformNudgeProfile(nudge);
 
     // Check if user has upvoted
     if (userId) {
@@ -60,19 +56,13 @@ export const nudgesApi = {
         .maybeSingle();
 
       return {
-        ...data,
-        // supabase should have inferred that this is a many-to-one relationship
-        // this is a workaround
-        creator_profile: data.creator_profile[0],
+        ...transformed,
         user_has_upvoted: !!upvote,
       };
     }
 
     return {
-      ...data,
-      // supabase should have inferred that this is a many-to-one relationship
-      // this is a workaround
-      creator_profile: data.creator_profile[0],
+      ...transformed,
       user_has_upvoted: false,
     };
   },
@@ -84,20 +74,15 @@ export const nudgesApi = {
       .eq('created_by', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data.map((nudge) => ({
-      ...nudge,
-      // supabase should have inferred that this is a many-to-one relationship
-      // this is a workaround
-      creator_profile: nudge.creator_profile[0],
-    }));
+    const nudges = unwrapResult(data, error);
+    return transformNudgeProfiles(nudges);
   },
 
   createNudge: async (dto: CreateNudgeDto): Promise<Nudge> => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new AuthenticationError();
 
     const { data: nudge, error: nudgeError } = await supabase
       .from('nudges')
@@ -109,9 +94,7 @@ export const nudgesApi = {
       .select()
       .single();
 
-    if (nudgeError) throw nudgeError;
-
-    return nudge;
+    return unwrapResult(nudge, nudgeError);
   },
 
   updateNudge: async ({ id, ...dto }: UpdateNudgeDto & { id: number }): Promise<Nudge> => {
@@ -122,14 +105,12 @@ export const nudgesApi = {
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    return unwrapResult(data, error);
   },
 
   deleteNudge: async (id: number): Promise<void> => {
     const { error } = await supabase.from('nudges').delete().eq('id', id);
-
-    if (error) throw error;
+    throwIfError(error);
   },
 
   upvoteNudge: async (nudgeId: number): Promise<void> => {
@@ -137,21 +118,21 @@ export const nudgesApi = {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new AuthenticationError();
 
     const { error } = await supabase.from('nudge_upvotes').insert({
       nudge_id: nudgeId,
       user_id: user.id,
     });
 
-    if (error) throw error;
+    throwIfError(error);
   },
 
   removeUpvote: async (nudgeId: number): Promise<void> => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new AuthenticationError();
 
     const { error } = await supabase
       .from('nudge_upvotes')
@@ -159,6 +140,6 @@ export const nudgesApi = {
       .eq('nudge_id', nudgeId)
       .eq('user_id', user.id);
 
-    if (error) throw error;
+    throwIfError(error);
   },
 };

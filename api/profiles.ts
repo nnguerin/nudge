@@ -1,13 +1,13 @@
 import { Profile, UpdateProfileDto } from './types';
 import { supabase } from '@/utils/supabase';
+import { unwrapResult } from './errors';
 
 // API functions
 export const profileApi = {
   getProfile: async (userId: string): Promise<Profile> => {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
-    if (error) throw error;
-    return data;
+    return unwrapResult(data, error);
   },
 
   updateProfile: async ({
@@ -21,7 +21,6 @@ export const profileApi = {
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    return unwrapResult(data, error);
   },
 };

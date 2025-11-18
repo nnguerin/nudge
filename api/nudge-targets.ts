@@ -5,6 +5,7 @@ import {
   NudgeTarget,
 } from './types';
 import { supabase } from '@/utils/supabase';
+import { AuthenticationError, unwrapResult, throwIfError } from './errors';
 
 // API functions
 export const nudgeTargetsApi = {
@@ -15,9 +16,9 @@ export const nudgeTargetsApi = {
       .eq('owner_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    const targets = unwrapResult(data, error);
 
-    return data.map((target) => ({
+    return targets.map((target) => ({
       ...target,
       contacts: target.nudge_target_contacts.map((ntc: any) => ntc.contact),
       is_group: target.nudge_target_contacts.length > 1,
@@ -31,12 +32,12 @@ export const nudgeTargetsApi = {
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    const target = unwrapResult(data, error);
 
     return {
-      ...data,
-      contacts: data.nudge_target_contacts.map((ntc: any) => ntc.contact),
-      is_group: data.nudge_target_contacts.length > 1,
+      ...target,
+      contacts: target.nudge_target_contacts.map((ntc: any) => ntc.contact),
+      is_group: target.nudge_target_contacts.length > 1,
     };
   },
 
@@ -44,7 +45,7 @@ export const nudgeTargetsApi = {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new AuthenticationError();
 
     const { contact_ids, ...targetData } = dto;
 
@@ -58,21 +59,21 @@ export const nudgeTargetsApi = {
       .select()
       .single();
 
-    if (targetError) throw targetError;
+    const createdTarget = unwrapResult(target, targetError);
 
     // Add contacts to the target
     if (contact_ids.length > 0) {
       const { error: contactsError } = await supabase.from('nudge_target_contacts').insert(
         contact_ids.map((contact_id) => ({
-          nudge_target_id: target.id,
+          nudge_target_id: createdTarget.id,
           contact_id,
         }))
       );
 
-      if (contactsError) throw contactsError;
+      throwIfError(contactsError);
     }
 
-    return target;
+    return createdTarget;
   },
 
   updateTarget: async ({
@@ -86,14 +87,12 @@ export const nudgeTargetsApi = {
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    return unwrapResult(data, error);
   },
 
   deleteTarget: async (id: string): Promise<void> => {
     const { error } = await supabase.from('nudge_targets').delete().eq('id', id);
-
-    if (error) throw error;
+    throwIfError(error);
   },
 
   addContactToTarget: async (target_id: string, contact_id: string): Promise<void> => {
@@ -102,7 +101,7 @@ export const nudgeTargetsApi = {
       contact_id,
     });
 
-    if (error) throw error;
+    throwIfError(error);
   },
 
   removeContactFromTarget: async (target_id: string, contact_id: string): Promise<void> => {
@@ -112,6 +111,6 @@ export const nudgeTargetsApi = {
       .eq('nudge_target_id', target_id)
       .eq('contact_id', contact_id);
 
-    if (error) throw error;
+    throwIfError(error);
   },
 };

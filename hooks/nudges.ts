@@ -1,4 +1,5 @@
 import { nudgesApi } from '@/api/nudges';
+import { NudgeWithDetails } from '@/api/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Query keys
@@ -75,7 +76,29 @@ export const useUpvoteNudge = () => {
 
   return useMutation({
     mutationFn: nudgesApi.upvoteNudge,
-    onSuccess: () => {
+    onMutate: async (nudgeId) => {
+      await queryClient.cancelQueries({ queryKey: nudgeKeys.lists() });
+
+      const previousNudges = queryClient.getQueriesData<NudgeWithDetails[]>({
+        queryKey: nudgeKeys.lists(),
+      });
+
+      queryClient.setQueriesData<NudgeWithDetails[]>({ queryKey: nudgeKeys.lists() }, (old) =>
+        old?.map((nudge) =>
+          nudge.id === nudgeId
+            ? { ...nudge, upvotes_count: (nudge.upvotes_count || 0) + 1, user_has_upvoted: true }
+            : nudge
+        )
+      );
+
+      return { previousNudges };
+    },
+    onError: (_err, _nudgeId, context) => {
+      context?.previousNudges.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: nudgeKeys.lists() });
     },
   });
@@ -86,7 +109,33 @@ export const useRemoveUpvote = () => {
 
   return useMutation({
     mutationFn: nudgesApi.removeUpvote,
-    onSuccess: () => {
+    onMutate: async (nudgeId) => {
+      await queryClient.cancelQueries({ queryKey: nudgeKeys.lists() });
+
+      const previousNudges = queryClient.getQueriesData<NudgeWithDetails[]>({
+        queryKey: nudgeKeys.lists(),
+      });
+
+      queryClient.setQueriesData<NudgeWithDetails[]>({ queryKey: nudgeKeys.lists() }, (old) =>
+        old?.map((nudge) =>
+          nudge.id === nudgeId
+            ? {
+                ...nudge,
+                upvotes_count: Math.max((nudge.upvotes_count || 0) - 1, 0),
+                user_has_upvoted: false,
+              }
+            : nudge
+        )
+      );
+
+      return { previousNudges };
+    },
+    onError: (_err, _nudgeId, context) => {
+      context?.previousNudges.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: nudgeKeys.lists() });
     },
   });

@@ -14,7 +14,6 @@ const NudgeCard = ({ nudge }: NudgeCardProps) => {
   const removeUpvoteNudgeMutation = useRemoveUpvote();
 
   const handleUpvote = () => {
-    console.log('calling mutate');
     upvoteNudgeMutation.mutate(nudge.id);
   };
 
