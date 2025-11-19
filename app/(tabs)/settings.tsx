@@ -1,4 +1,3 @@
-import Button from '@/components/ui/Button';
 import { ButtonMenu, MenuButton } from '@/components/ui/ButtonMenu';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useStore } from '@/store/store';

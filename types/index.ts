@@ -50,11 +50,13 @@ export interface CreateNudgeTargetDto {
   name: string;
   recurrence_pattern: Json | null;
   contact_ids: string[];
+  image_uri?: string | null;
 }
 
 export interface UpdateNudgeTargetDto {
   name?: string;
   recurrence_pattern?: Json | null;
+  image_uri?: string | null;
 }
 
 export interface CreateNudgeDto {

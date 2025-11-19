@@ -14,24 +14,31 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom
 import Animated from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import { useCreateNudgeTarget } from '@/hooks/nudge-targets';
+import {
+  useUpdateNudgeTarget,
+  useAddContactToTarget,
+  useRemoveContactFromTarget,
+} from '@/hooks/nudge-targets';
 import { useCreateContact } from '@/hooks/contacts';
 import { useStore } from '@/store/store';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { ContactPicker, PhoneContact } from './ContactPicker';
+import { NudgeTargetWithContacts, Contact } from '@/types';
 import { PremiumModal } from './PremiumModal';
 import { useSubmitAnimation } from './AnimatedSubmitButton';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-interface CreateTargetBottomSheetProps {
+interface EditTargetBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  target: NudgeTargetWithContacts | null;
 }
 
-export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = ({
+export const EditTargetBottomSheet: React.FC<EditTargetBottomSheetProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  target,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['75%', '90%'], []);
@@ -39,18 +46,36 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
   const { profile } = useStore();
 
   const [name, setName] = useState('');
-  const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [isImageManuallySet, setIsImageManuallySet] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [selectedPhoneContacts, setSelectedPhoneContacts] = useState<PhoneContact[]>([]);
 
-  const createTargetMutation = useCreateNudgeTarget();
+  // Track existing contacts and their removal status
+  const [existingContacts, setExistingContacts] = useState<Contact[]>([]);
+  const [contactsToRemove, setContactsToRemove] = useState<Set<string>>(new Set());
+
+  // Track new contacts to add
+  const [newPhoneContacts, setNewPhoneContacts] = useState<PhoneContact[]>([]);
+
+  const updateTargetMutation = useUpdateNudgeTarget();
+  const addContactMutation = useAddContactToTarget();
+  const removeContactMutation = useRemoveContactFromTarget();
   const createContactMutation = useCreateContact();
 
   const { triggerSuccessAnimation, buttonAnimatedStyle, shimmerStyle } = useSubmitAnimation();
+
+  // Initialize form when target changes
+  useEffect(() => {
+    if (target) {
+      setName(target.name);
+      setImageUri(target.image_uri || null);
+      setExistingContacts(target.contacts);
+      setContactsToRemove(new Set());
+      setNewPhoneContacts([]);
+      setError(null);
+    }
+  }, [target]);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,11 +87,25 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
 
   const resetForm = () => {
     setName('');
-    setIsNameManuallyEdited(false);
     setImageUri(null);
-    setIsImageManuallySet(false);
-    setSelectedPhoneContacts([]);
+    setExistingContacts([]);
+    setContactsToRemove(new Set());
+    setNewPhoneContacts([]);
     setError(null);
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+      Haptics.selectionAsync();
+    }
   };
 
   const handleSheetChanges = useCallback(
@@ -86,52 +125,47 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
     []
   );
 
-  const handleSelectionChange = (newSelection: PhoneContact[]) => {
-    // Auto-populate name if not manually edited
-    if (!isNameManuallyEdited) {
-      setName(newSelection.map((c) => c.name).join(', '));
-    }
-    // Auto-set image from first contact if not manually set
-    if (!isImageManuallySet) {
-      const firstContactWithImage = newSelection.find((c) => c.imageUri);
-      setImageUri(firstContactWithImage?.imageUri || null);
-    }
-    setSelectedPhoneContacts(newSelection);
-  };
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+  const handleRemoveExistingContact = (contactId: string) => {
+    setContactsToRemove((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(contactId)) {
+        newSet.delete(contactId);
+      } else {
+        newSet.add(contactId);
+      }
+      return newSet;
     });
-
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setIsImageManuallySet(true);
-      Haptics.selectionAsync();
-    }
+    Haptics.selectionAsync();
   };
 
-  const handleNameChange = (text: string) => {
-    setName(text);
-    // Mark as manually edited if user types something different from auto-generated
-    const autoName = selectedPhoneContacts.map((c) => c.name).join(', ');
-    if (text !== autoName) {
-      setIsNameManuallyEdited(true);
+  const handleNewContactsChange = (contacts: PhoneContact[]) => {
+    // Check premium limit
+    const remainingExisting = existingContacts.filter((c) => !contactsToRemove.has(c.id)).length;
+    const totalContacts = remainingExisting + contacts.length;
+
+    if (!profile?.is_premium && totalContacts > 1) {
+      setShowPremiumModal(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
     }
+
+    setNewPhoneContacts(contacts);
   };
 
   const handleSubmit = async () => {
+    if (!target) return;
+
     if (!name.trim()) {
       setError('Please enter a connection name');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
 
-    if (selectedPhoneContacts.length === 0) {
-      setError('Please select at least one contact');
+    const remainingExisting = existingContacts.filter((c) => !contactsToRemove.has(c.id)).length;
+    const totalContacts = remainingExisting + newPhoneContacts.length;
+
+    if (totalContacts === 0) {
+      setError('Please keep at least one contact');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -140,24 +174,38 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
     setError(null);
 
     try {
-      // Create contacts from phone contacts
-      const contactIds: string[] = [];
-      for (const phoneContact of selectedPhoneContacts) {
+      // Update the target name and image if changed
+      const nameChanged = name.trim() !== target.name;
+      const imageChanged = imageUri !== target.image_uri;
+
+      if (nameChanged || imageChanged) {
+        await updateTargetMutation.mutateAsync({
+          id: target.id,
+          name: name.trim(),
+          image_uri: imageUri,
+        });
+      }
+
+      // Remove contacts marked for removal
+      for (const contactId of contactsToRemove) {
+        await removeContactMutation.mutateAsync({
+          recipient_id: target.id,
+          contact_id: contactId,
+        });
+      }
+
+      // Create and add new contacts
+      for (const phoneContact of newPhoneContacts) {
         const contact = await createContactMutation.mutateAsync({
           name: phoneContact.name,
           email: phoneContact.email,
           phone: phoneContact.phone,
         });
-        contactIds.push(contact.id);
+        await addContactMutation.mutateAsync({
+          recipient_id: target.id,
+          contact_id: contact.id,
+        });
       }
-
-      // Create the target with contacts
-      await createTargetMutation.mutateAsync({
-        name: name.trim(),
-        recurrence_pattern: null,
-        contact_ids: contactIds,
-        image_uri: imageUri,
-      });
 
       triggerSuccessAnimation();
 
@@ -167,15 +215,20 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
         resetForm();
       }, 600);
     } catch (err) {
-      console.error('Error creating target:', err);
-      setError('Failed to create connection. Please try again.');
+      console.error('Error updating target:', err);
+      setError('Failed to update connection. Please try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const isValid = name.trim().length > 0 && selectedPhoneContacts.length > 0;
+  const remainingExisting = existingContacts.filter((c) => !contactsToRemove.has(c.id)).length;
+  const totalContacts = remainingExisting + newPhoneContacts.length;
+  const isValid = name.trim().length > 0 && totalContacts > 0;
+
+  // Calculate max selection for ContactPicker
+  const maxNewContacts = profile?.is_premium ? undefined : Math.max(0, 1 - remainingExisting);
 
   return (
     <>
@@ -195,8 +248,8 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
             style={styles.keyboardView}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>New Connection</Text>
-              <Text style={styles.subtitle}>Create a person or group to nudge</Text>
+              <Text style={styles.title}>Edit Connection</Text>
+              <Text style={styles.subtitle}>Update your connection details</Text>
             </View>
 
             {/* Image Picker */}
@@ -210,38 +263,81 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
                   </View>
                 )}
               </Pressable>
-              <Text style={styles.imagePickerHint}>Tap to add photo</Text>
+              <Text style={styles.imagePickerHint}>Tap to change photo</Text>
             </View>
-
-            {/* Contacts Section */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Select Contacts</Text>
-            </View>
-
-            {/* Contact Picker */}
-            <ContactPicker
-              selectedContacts={selectedPhoneContacts}
-              onSelectionChange={handleSelectionChange}
-              maxSelection={profile?.is_premium ? undefined : 1}
-              onMaxSelectionExceeded={() => setShowPremiumModal(true)}
-            />
 
             {/* Connection Name Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Connection Name</Text>
-              <Text style={styles.connectionNameHelperText}>
-                e.g., Mom, Book Club, Best Friends
-              </Text>
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g., Mom, Book Club, Best Friends"
                 placeholderTextColor="#999"
                 value={name}
-                onChangeText={handleNameChange}
+                onChangeText={setName}
                 maxLength={100}
-                autoFocus
               />
             </View>
+
+            {/* Current Contacts Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Current Contacts</Text>
+            </View>
+
+            {existingContacts.length > 0 ? (
+              <View style={styles.existingContactsList}>
+                {existingContacts.map((contact) => {
+                  const isMarkedForRemoval = contactsToRemove.has(contact.id);
+                  return (
+                    <View
+                      key={contact.id}
+                      style={[
+                        styles.existingContactItem,
+                        isMarkedForRemoval && styles.existingContactItemRemoved,
+                      ]}>
+                      <View style={styles.contactInfo}>
+                        <Text
+                          style={[
+                            styles.contactName,
+                            isMarkedForRemoval && styles.contactNameRemoved,
+                          ]}>
+                          {contact.name}
+                        </Text>
+                        {contact.phone && (
+                          <Text style={styles.contactDetail}>{contact.phone}</Text>
+                        )}
+                        {contact.email && (
+                          <Text style={styles.contactDetail}>{contact.email}</Text>
+                        )}
+                      </View>
+                      <Pressable
+                        onPress={() => handleRemoveExistingContact(contact.id)}
+                        style={styles.removeButton}>
+                        <MaterialCommunityIcons
+                          name={isMarkedForRemoval ? 'undo' : 'close'}
+                          size={20}
+                          color={isMarkedForRemoval ? '#007AFF' : '#FF3B30'}
+                        />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.noContactsText}>No contacts</Text>
+            )}
+
+            {/* Add New Contacts Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Add Contacts</Text>
+            </View>
+
+            <ContactPicker
+              selectedContacts={newPhoneContacts}
+              onSelectionChange={handleNewContactsChange}
+              maxSelection={maxNewContacts}
+              onMaxSelectionExceeded={() => setShowPremiumModal(true)}
+            />
 
             {/* Error Message */}
             {error && (
@@ -264,7 +360,7 @@ export const CreateTargetBottomSheet: React.FC<CreateTargetBottomSheetProps> = (
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.submitButtonText}>Create Connection</Text>
+                  <Text style={styles.submitButtonText}>Save Changes</Text>
                 )}
               </Pressable>
             </Animated.View>
@@ -353,6 +449,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 8,
   },
   textInput: {
     backgroundColor: '#F2F2F7',
@@ -361,10 +458,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
-  connectionNameHelperText: {
+  existingContactsList: {
+    marginBottom: 16,
+  },
+  existingContactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+    marginBottom: 8,
+  },
+  existingContactItemRemoved: {
+    backgroundColor: '#FFE5E5',
+    opacity: 0.7,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+  },
+  contactNameRemoved: {
+    textDecorationLine: 'line-through',
+    color: '#999',
+  },
+  contactDetail: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 8,
+    marginTop: 2,
+  },
+  removeButton: {
+    padding: 8,
+  },
+  noContactsText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   errorContainer: {
     backgroundColor: '#FFE5E5',

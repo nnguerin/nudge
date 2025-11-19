@@ -1,7 +1,6 @@
 import { cn } from '@/utils/cn';
 import { colors } from '@/utils/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import React, { PropsWithChildren } from 'react';
 import { View, TouchableOpacity, Text, GestureResponderEvent } from 'react-native';
 

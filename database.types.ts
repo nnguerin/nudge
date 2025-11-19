@@ -45,7 +45,36 @@ export type Database = {
           phone?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contacts_linked_user_id_fkey1"
+            columns: ["linked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_linked_user_id_fkey2"
+            columns: ["linked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_owner_id_fkey1"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_owner_id_fkey2"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nudge_sends: {
         Row: {
@@ -54,6 +83,7 @@ export type Database = {
           id: string
           nudge_id: number
           sent_at: string | null
+          sent_by: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -61,6 +91,7 @@ export type Database = {
           id?: string
           nudge_id: number
           sent_at?: string | null
+          sent_by?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -68,6 +99,7 @@ export type Database = {
           id?: string
           nudge_id?: number
           sent_at?: string | null
+          sent_by?: string | null
         }
         Relationships: [
           {
@@ -82,6 +114,13 @@ export type Database = {
             columns: ["nudge_id"]
             isOneToOne: false
             referencedRelation: "nudges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nudge_sends_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -126,6 +165,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          image_uri: string | null
           name: string
           owner_id: string
           recurrence_pattern: Json | null
@@ -134,6 +174,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          image_uri?: string | null
           name: string
           owner_id: string
           recurrence_pattern?: Json | null
@@ -142,12 +183,21 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          image_uri?: string | null
           name?: string
           owner_id?: string
           recurrence_pattern?: Json | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nudge_targets_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nudge_upvotes: {
         Row: {
@@ -210,13 +260,22 @@ export type Database = {
           updated_at?: string | null
           upvotes_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nudges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           email: string | null
           first_name: string | null
           id: string
+          is_premium: boolean
           last_name: string | null
           updated_at: string | null
         }
@@ -224,6 +283,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id: string
+          is_premium?: boolean
           last_name?: string | null
           updated_at?: string | null
         }
@@ -231,6 +291,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          is_premium?: boolean
           last_name?: string | null
           updated_at?: string | null
         }

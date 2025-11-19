@@ -1,4 +1,4 @@
-import { Profile } from '@/api/types';
+import { Profile } from '@/types';
 import { supabase } from '@/utils/supabase';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
@@ -14,12 +14,6 @@ export interface AppState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-
-  // bears
-  bears: number;
-  increasePopulation: () => void;
-  removeAllBears: () => void;
-  updateBears: (newBears: number) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -31,14 +25,16 @@ export const useStore = create<AppState>((set) => ({
   setProfile: (profile) => set({ profile }),
   setAuthIsLoading: (loading) => set({ authIsLoading: loading }),
   signIn: async (email, password) => {
-    set({authIsLoading: true})
+    set({ authIsLoading: true });
 
-    supabase.auth.signInWithPassword({email, password}).then(() => {
-      set({authIsLoading: false})
-    }).catch( (error) => {
-      throw error
-    })
-  
+    supabase.auth
+      .signInWithPassword({ email, password })
+      .then(() => {
+        set({ authIsLoading: false });
+      })
+      .catch((error) => {
+        throw error;
+      });
   },
   signUp: async (email, password) => {
     const { error } = await supabase.auth.signUp({
@@ -51,10 +47,4 @@ export const useStore = create<AppState>((set) => ({
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
-
-  // bears
-  bears: 0,
-  increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
-  removeAllBears: () => set({ bears: 0 }),
-  updateBears: (newBears) => set({ bears: newBears }),
 }));

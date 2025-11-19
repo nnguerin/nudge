@@ -1,4 +1,4 @@
-import { Profile, UpdateProfileDto } from './types';
+import { Profile, UpdateProfileDto } from '@/types';
 import { supabase } from '@/utils/supabase';
 import { unwrapResult } from './errors';
 

@@ -56,13 +56,6 @@ nudgeKeys.detail(id)      // ['nudges', 'detail', id]
 
 ## Key Patterns
 
-### Supabase Many-to-One Workaround
-
-Supabase returns arrays for joined relationships. Extract first element manually:
-```typescript
-creator_profile: nudge.creator_profile[0]
-```
-
 ### Optimistic Updates
 
 Upvote mutations use `onMutate` for instant UI updates with rollback on error. See `hooks/nudges.ts`.
@@ -85,5 +78,6 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<your_supabase_anon_key>
 ## Key Files
 
 - `database.types.ts` - Auto-generated, do not edit manually
-- `api/types.tsx` - DTOs and API response types
+- `types/index.ts` - DTOs and API response types
+- `api/errors.ts` - Custom error classes for API layer
 - `utils/supabase.ts` - Supabase client singleton

@@ -1,5 +1,5 @@
 import { nudgesApi } from '@/api/nudges';
-import { NudgeWithDetails } from '@/api/types';
+import { NudgeWithDetails } from '@/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Query keys
