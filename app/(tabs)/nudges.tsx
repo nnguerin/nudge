@@ -9,7 +9,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 type FilterType = 'all' | 'trending' | 'mine';
@@ -64,6 +64,17 @@ export const Nudges = () => {
           <RefreshControl refreshing={loadingNudges} onRefresh={handleNudgesRefresh} />
         }>
         <View className="m-2 flex flex-col gap-2">
+          {!loadingNudges && filteredNudges.length === 0 && (
+            <View className="items-center py-8">
+              <Text className="text-gray-500">
+                {nudges?.length === 0
+                  ? 'No nudges yet. Create one to get started!'
+                  : filter === 'mine'
+                    ? "You haven't created any nudges yet"
+                    : 'No nudges match this filter'}
+              </Text>
+            </View>
+          )}
           {filteredNudges.map((nudge) => (
             <NudgeCard key={nudge.id} nudge={nudge} />
           ))}
