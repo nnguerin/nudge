@@ -1,7 +1,6 @@
-import { Nudge, NudgeWithDetails, CreateNudgeDto, UpdateNudgeDto } from './types';
+import { Nudge, NudgeWithDetails, CreateNudgeDto, UpdateNudgeDto } from '@/types';
 import { supabase } from '@/utils/supabase';
 import { AuthenticationError, unwrapResult, throwIfError } from './errors';
-import { transformNudgeProfile, transformNudgeProfiles } from './transforms';
 
 // API functions
 export const nudgesApi = {
@@ -12,7 +11,6 @@ export const nudgesApi = {
       .order('created_at', { ascending: false });
 
     const nudges = unwrapResult(data, error);
-    const transformed = transformNudgeProfiles(nudges);
 
     // If userId provided, check which nudges they've upvoted
     if (userId) {
@@ -24,13 +22,13 @@ export const nudgesApi = {
       const upvoteData = unwrapResult(upvotes, upvotesError);
       const upvotedNudgeIds = new Set(upvoteData.map((u) => u.nudge_id));
 
-      return transformed.map((nudge) => ({
+      return nudges.map((nudge) => ({
         ...nudge,
         user_has_upvoted: upvotedNudgeIds.has(nudge.id),
       }));
     }
 
-    return transformed.map((nudge) => ({
+    return nudges.map((nudge) => ({
       ...nudge,
       user_has_upvoted: false,
     }));
@@ -44,7 +42,6 @@ export const nudgesApi = {
       .single();
 
     const nudge = unwrapResult(data, error);
-    const transformed = transformNudgeProfile(nudge);
 
     // Check if user has upvoted
     if (userId) {
@@ -56,13 +53,13 @@ export const nudgesApi = {
         .maybeSingle();
 
       return {
-        ...transformed,
+        ...nudge,
         user_has_upvoted: !!upvote,
       };
     }
 
     return {
-      ...transformed,
+      ...nudge,
       user_has_upvoted: false,
     };
   },
@@ -75,7 +72,7 @@ export const nudgesApi = {
       .order('created_at', { ascending: false });
 
     const nudges = unwrapResult(data, error);
-    return transformNudgeProfiles(nudges);
+    return nudges;
   },
 
   createNudge: async (dto: CreateNudgeDto): Promise<Nudge> => {

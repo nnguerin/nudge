@@ -3,7 +3,7 @@ import {
   CreateNudgeTargetDto,
   UpdateNudgeTargetDto,
   NudgeTarget,
-} from './types';
+} from '@/types';
 import { supabase } from '@/utils/supabase';
 import { AuthenticationError, unwrapResult, throwIfError } from './errors';
 
@@ -47,13 +47,14 @@ export const nudgeTargetsApi = {
     } = await supabase.auth.getUser();
     if (!user) throw new AuthenticationError();
 
-    const { contact_ids, ...targetData } = dto;
+    const { contact_ids, image_uri, ...targetData } = dto;
 
     // Create the target
     const { data: target, error: targetError } = await supabase
       .from('nudge_targets')
       .insert({
         ...targetData,
+        image_uri,
         owner_id: user.id,
       })
       .select()

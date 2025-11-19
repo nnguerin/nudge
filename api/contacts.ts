@@ -1,4 +1,4 @@
-import { Contact, CreateContactDto, UpdateContactDto } from './types';
+import { Contact, CreateContactDto, UpdateContactDto } from '@/types';
 import { supabase } from '@/utils/supabase';
 import { AuthenticationError, unwrapResult, throwIfError } from './errors';
 

@@ -1,14 +1,12 @@
 import { useStore } from '@/store/store';
 import { useState } from 'react';
-import { Pressable, View, Text, TextInput } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '@/utils/colors';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { cn } from '@/utils/cn';
 import { Stack } from 'expo-router';
-import Button from '@/components/ui/Button';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 
 const SignIn = () => {

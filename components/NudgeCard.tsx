@@ -1,4 +1,4 @@
-import { NudgeWithDetails } from '@/api/types';
+import { NudgeWithDetails } from '@/types';
 import { Text, View } from 'react-native';
 import { InteractiveButton } from './ui/InteractiveButton';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';

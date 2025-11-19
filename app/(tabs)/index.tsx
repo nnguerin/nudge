@@ -1,19 +1,22 @@
 import { CreateTargetBottomSheet } from '@/components/CreateTargetBottomSheet';
+import { EditTargetBottomSheet } from '@/components/EditTargetBottomSheet';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useNudgeTargets, useDeleteNudgeTarget, targetKeys } from '@/hooks/nudge-targets';
 import { useStore } from '@/store/store';
+import { NudgeTargetWithContacts } from '@/types';
 import { colors } from '@/utils/colors';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { View, Text, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, Pressable, Alert, Image } from 'react-native';
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 export default function Home() {
   const { profile } = useStore();
   const { data: targets, isLoading } = useNudgeTargets(profile?.id || '');
   const [showCreate, setShowCreate] = useState(false);
+  const [editTarget, setEditTarget] = useState<NudgeTargetWithContacts | null>(null);
   const deleteTargetMutation = useDeleteNudgeTarget();
   const queryClient = useQueryClient();
 
@@ -49,9 +52,22 @@ export default function Home() {
           )}
 
           {targets?.map((target) => (
-            <View
+            <Pressable
               key={target.id}
-              className="mb-2 flex-row items-center justify-between rounded-lg border border-gray-200 bg-white p-4">
+              onPress={() => setEditTarget(target)}
+              className="mb-2 flex-row items-center rounded-lg border border-gray-200 bg-white p-4">
+              {target.image_uri ? (
+                <Image
+                  source={{ uri: target.image_uri }}
+                  className="mr-3 h-12 w-12 rounded-full"
+                />
+              ) : (
+                <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-blue-500">
+                  <Text className="text-lg font-semibold text-white">
+                    {target.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
               <View className="flex-1">
                 <Text className="text-lg font-medium">{target.name}</Text>
                 <Text className="text-sm text-gray-500">
@@ -66,7 +82,7 @@ export default function Home() {
               <Pressable onPress={() => handleDelete(target.id, target.name)} className="ml-2 p-2">
                 <MaterialCommunityIcons name="trash-can-outline" size={20} color="#FF3B30" />
               </Pressable>
-            </View>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -83,6 +99,12 @@ export default function Home() {
       />
 
       <CreateTargetBottomSheet isOpen={showCreate} onClose={() => setShowCreate(false)} />
+
+      <EditTargetBottomSheet
+        isOpen={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        target={editTarget}
+      />
     </View>
   );
 }

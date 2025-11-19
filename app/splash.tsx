@@ -1,5 +1,5 @@
 import { colors } from '@/utils/colors';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 
@@ -10,7 +10,10 @@ export default function Splash() {
       className={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <View className={styles.logoContainer}>
-        <Text>Logo Image!</Text>
+        <Image
+          source={require('../assets/icon.png')}
+          style={{ width: 96, height: 96, borderRadius: 24 }}
+        />
       </View>
       <ActivityIndicator size="large" color={colors.orange[200]} />
     </LinearGradient>
